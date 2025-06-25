@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>흥국생명 With You - 강의 대시보드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f4f4f6;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      background-color: #ffffff;
+      border-bottom: 1px solid #ddd;
+      padding: 20px;
+    }
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      font-size: 24px;
+      color: #E6007E;
+    }
+    .user-info {
+      font-size: 14px;
+      margin-top: 4px;
+      color: #555;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .tabs button {
+      padding: 8px 16px;
+      border: none;
+      background: #eee;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .tabs button.active {
+      background: #E6007E;
+      color: white;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 40px 0 12px;
+      color: #E6007E;
+    }
+    .thumbnail-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      padding-bottom: 10px;
+    }
+    .thumb-card {
+      position: relative;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .thumb-card:hover {
+      transform: scale(1.03);
+    }
+    .thumb-card img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+    }
+    .thumb-info {
+      padding: 10px;
+    }
+    .thumb-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .thumb-meta {
+      font-size: 12px;
+      color: #999;
+    }
+    .thumb-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      position: relative;
+      width: 90%;
+      max-width: 800px;
+      background: #000;
+      border-radius: 8px;
+    }
+    .modal iframe {
+      width: 100%;
+      height: 450px;
+      border: none;
+      border-radius: 8px;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      font-size: 28px;
+      color: #fff;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+  <div class="modal" id="videoModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <header>
+    <div class="container">
+      <div class="header-inner">
+        <h1>흥국생명 With You</h1>
+        <div class="user-info">김홍국 FC님 | 포인트: 1,250점</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-button active" onclick="filterSection('all')">전체</button>
+      <button class="tab-button" onclick="filterSection('shorts')">숏츠</button>
+      <button class="tab-button" onclick="filterSection('product')">상품</button>
+      <button class="tab-button" onclick="filterSection('recommend')">추천</button>
+      <button class="tab-button" onclick="filterSection('continue')">복습하기</button>
+    </div>
+
+    <div id="shorts-section" class="section">
+      <div class="section-title">🎬 1분 숏츠</div>
+      <div class="thumbnail-row" id="shorts-list"></div>
+    </div>
+    <div id="product-section" class="section">
+      <div class="section-title">📦 상품 강의</div>
+      <div class="thumbnail-row" id="product-list"></div>
+    </div>
+    <div id="recommend-section" class="section">
+      <div class="section-title">⭐ 추천 강의</div>
+      <div class="thumbnail-row" id="recommend-list"></div>
+    </div>
+    <div id="continue-section" class="section">
+      <div class="section-title">▶ 복습 하기</div>
+      <div class="thumbnail-row" id="continue-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const videoData = [
+      { id: '1085881572', h: 'e16ec7b6aa', title: '숏츠 1', meta: '조회 ↑', duration: '1:00', section: 'shorts' },
+      { id: '1082093608', h: '317cb41608', title: '상품 1', meta: '기초', duration: '2:10', section: 'product' },
+      { id: '1082024006', h: '89d34c210e', title: '추천 1', meta: '설득', duration: '3:35', section: 'recommend' },
+      { id: '1077160641', h: '055bcbadff', title: '추천 2', meta: '리더십', duration: '4:20', section: 'recommend' },
+      { id: '1077179308', h: '4b5658620d', title: '숏츠 2', meta: '신규', duration: '1:05', section: 'shorts' },
+      { id: '1074176170', h: '538535f483', title: '상품 2', meta: '응용', duration: '2:55', section: 'product' },
+      { id: '1060001627', h: 'c3a647d159', title: '상품 3', meta: '신상품', duration: '3:15', section: 'product' },
+      { id: '1080062038', h: 'a82fdaaea1', title: '숏츠 3', meta: '요약', duration: '2:20', section: 'shorts' },
+      { id: '1072379675', h: '446a6157f2', title: '상품 4', meta: '보장', duration: '2:45', section: 'product' },
+      { id: '1072379713', h: '27e93c75fb', title: '숏츠 4', meta: '추천', duration: '1:20', section: 'shorts' },
+      { id: '1057399127', h: '1708ed76e4', title: '복습 1', meta: '65%', duration: '3:10', section: 'continue' },
+      { id: '1065338519', h: 'f31d2bbbed', title: '복습 2', meta: '40%', duration: '3:30', section: 'continue' },
+      { id: '1062669488', h: '1f2c038edf', title: '복습 3', meta: '30%', duration: '2:15', section: 'continue' },
+      { id: '1057695260', h: '54ae0b05ba', title: '복습 4', meta: '90%', duration: '2:55', section: 'continue' },
+      { id: '1062319155', h: '5509fd8a7a', title: '추천 3', meta: '복습', duration: '2:35', section: 'recommend' },
+      { id: '1062271967', h: '5a77d20794', title: '추천 4', meta: '추천', duration: '2:50', section: 'recommend' }
+    ];
+
+    const sections = ['shorts', 'product', 'recommend', 'continue'];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      sections.forEach(section => {
+        const container = document.getElementById(`${section}-list`);
+        videoData.filter(v => v.section === section).forEach(v => {
+          const card = document.createElement('div');
+          card.className = 'thumb-card';
+          card.onclick = () => openModal(v.id, v.h);
+          card.innerHTML = `
+            <img src="https://vumbnail.com/${v.id}.jpg">
+            <div class="thumb-duration">${v.duration}</div>
+            <div class="thumb-info">
+              <div class="thumb-title">${v.title}</div>
+              <div class="thumb-meta">${v.meta}</div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+      filterSection('all');
+    });
+
+    function openModal(id, h) {
+      document.getElementById('videoModal').style.display = 'flex';
+      document.getElementById('videoFrame').src = `https://player.vimeo.com/video/${id}?h=${h}&autoplay=1`;
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('videoModal');
+      const iframe = document.getElementById('videoFrame');
+      iframe.src = '';
+      modal.style.display = 'none';
+    }
+
+    function filterSection(type) {
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tabs button').forEach(btn => {
+        if (btn.textContent === type || (type === 'all' && btn.textContent === '전체')) {
+          btn.classList.add('active');
+        }
+      });
+      sections.forEach(id => {
+        document.getElementById(`${id}-section`).style.display = (type === 'all' || id === type) ? 'block' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
